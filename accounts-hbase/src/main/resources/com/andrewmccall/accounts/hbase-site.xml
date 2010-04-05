@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  ~ Copyright (c) 2010. Andrew McCall [andrew@andrewmccall.com] - All Rights Reserved.
+  ~
+  ~ Unless explicitly stated otherwise, all rights are owned by or controlled by Andrew McCall.
+  ~
+  ~ Except as otherwise expressly permitted under copyright law the content not be copied, reproduced,
+  ~ republished, downloaded, posted, broadcast or transmitted in any way without first obtaining Andrew
+  ~ McCall's written permission or that of the copyright owner.
+  -->
+
+<!-- Hbase configuration used for testing. -->
+<configuration>
+    <property>
+        <name>hbase.regionserver.class</name>
+        <value>org.apache.hadoop.hbase.ipc.IndexedRegionInterface</value>
+    </property>
+    <property>
+        <name>hbase.regionserver.impl</name>
+        <value>org.apache.hadoop.hbase.regionserver.tableindexed.IndexedRegionServer</value>
+    </property>
+</configuration>

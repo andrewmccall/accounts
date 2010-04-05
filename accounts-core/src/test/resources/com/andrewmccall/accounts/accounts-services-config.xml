@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010. Andrew McCall [andrew@andrewmccall.com] - All Rights Reserved.
+  ~
+  ~ Unless explicitly stated otherwise, all rights are owned by or controlled by Andrew McCall.
+  ~
+  ~ Except as otherwise expressly permitted under copyright law the content not be copied, reproduced,
+  ~ republished, downloaded, posted, broadcast or transmitted in any way without first obtaining Andrew
+  ~ McCall's written permission or that of the copyright owner.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+    <bean id="tokenRepository" class="org.easymock.EasyMock"
+          factory-method="createMock">
+        <constructor-arg index="0"
+                         value="com.andrewmccall.accounts.core.springsecurity.rememberme.TokenRepository"/>
+    </bean>
+
+    <bean id="accountService" class="org.easymock.EasyMock"
+          factory-method="createMock">
+        <constructor-arg index="0"
+                         value="com.andrewmccall.accounts.core.AccountService"/>
+    </bean>
+
+    <bean id="accessTokenStore" class="org.easymock.EasyMock"
+          factory-method="createMock">
+        <constructor-arg index="0"
+                         value="com.andrewmccall.accounts.core.oauth.AccessTokenStore"/>
+    </bean>
+
+    <bean id="resourceId" class="java.lang.String">
+        <constructor-arg index="0" value="test-resource"/>
+    </bean>
+
+    <bean id="httpClient" class="org.easymock.EasyMock"
+          factory-method="createMock">
+        <constructor-arg index="0"
+                         value="org.apache.http.client.HttpClient"/>
+    </bean>
+
+    <bean id="oAuthConsumer" class="org.easymock.EasyMock"
+          factory-method="createMock">
+        <constructor-arg index="0"
+                         value="com.andrewmccall.oauth.OAuthConsumer"/>        
+    </bean>
+
+    <bean id="service" class="com.andrewmccall.accounts.core.oauth.Service">
+        <property name="id" value="test-service"/>
+        <property name="consumerKey" value="CONSUMER_KEY"/>
+        <property name="sharedSecret" value="SHARED_SECRET"/>
+        <property name="accessTokenUrl" value="http://example.com/access_token"/>
+        <property name="requestTokenUrl" value="http://example.com/request_token"/>
+        <property name="userAuthorizationUrl" value="http://example.com/authorization"/>
+        <property name="messageSigner">
+            <bean class="com.andrewmccall.oauth.signature.HmacSha1MessageSigner"/>
+        </property>
+        <property name="signingStrategy">
+            <bean class="com.andrewmccall.oauth.signature.AuthorizationHeaderSigningStrategy"/>
+        </property>
+    </bean>
+
+</beans>

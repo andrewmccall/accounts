@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>com.andrewmccall.accounts</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>accounts-hbase</artifactId>
+    <packaging>jar</packaging>
+    <name>com.andrewmccall.accounts hbase.</name>
+
+    <dependencies>
+        <dependency>
+            <artifactId>accounts-core</artifactId>
+            <groupId>com.andrewmccall.accounts</groupId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- include the tests from accounts-core as well. -->
+        <dependency>
+            <artifactId>accounts-core</artifactId>
+            <groupId>com.andrewmccall.accounts</groupId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hbase</artifactId>
+            <version>0.20.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+            <version>0.20.1+133</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hbase-indexed</artifactId>
+            <version>0.20.3-SNAPSHOT</version>
+        </dependency>
+
+    </dependencies>
+
+</project>

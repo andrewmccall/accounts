@@ -1,0 +1,107 @@
+<!--
+  ~ Copyright (c) 2010. Andrew McCall [andrew@andrewmccall.com] - All Rights Reserved.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.andrewmccall.accounts</groupId>
+    <artifactId>parent</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>com.andrewmccall.accounts parent package.</name>    
+
+    <properties>
+        <springframework.version>3.0.0.RELEASE</springframework.version>
+        <springsecurity.version>3.0.1.CI-SNAPSHOT</springsecurity.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>${springframework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${springframework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>${springsecurity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${springsecurity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${springsecurity.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>1.2.4</version>
+        </dependency>
+
+        <!-- Optional Depenencies that are required by the WARs. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${springframework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.6</version>
+        </dependency>
+
+    </dependencies>
+
+    <modules>
+        <module>accounts-core</module>
+        <module>accounts-hbase</module>
+        <module>accounts-hibernate</module>
+    </modules>
+
+    <repositories>
+        <repository>
+            <id>jboss</id>
+            <name>JBoss Repo</name>
+            <url>http://repository.jboss.org/maven2/</url>
+            <layout>default</layout>
+        </repository>
+
+        <repository>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>com.springsource.repository.maven.snapshot</id>
+            <name>SpringSource Enterprise Bundle Maven Repository - SpringSource Snapshot Releases</name>
+            <url>http://maven.springframework.org/snapshot</url>
+        </repository>
+
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>com.springsource.repository.maven.milestone</id>
+            <name>Spring Framework Maven Milestone Releases (Maven Central Format)</name>
+            <url>http://maven.springframework.org/milestone</url>
+        </repository>
+
+    </repositories>
+
+</project>

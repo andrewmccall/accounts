@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.andrewmccall.accounts.core.User" table="user">
+        <id name="id" type="java.lang.Long">
+            <generator class="native"/>
+        </id>
+        <property name="username"/>
+        <property name="twitterId"/>
+        <property name="name"/>
+        <property name="bio"/>
+        <property name="website"/>
+        <property name="location"/>
+        <property name="followers"/>
+        <property name="friends"/>
+        <property name="timeZoneId"/>
+    </class>
+
+    <class name="com.andrewmccall.accounts.core.springsecurity.rememberme.RememberMeToken" table="rememberme">
+        <composite-id >
+            <key-many-to-one name="user" column="user_id"/>
+            <key-property name="series"/>
+        </composite-id>
+        <timestamp name="date"/>
+        <property name="value"/>
+    </class>
+
+    <class name="com.andrewmccall.accounts.hibernate.oauth.AccessToken" table="access_token">
+        <composite-id>
+            <key-many-to-one name="user" column="user_id"/>
+            <key-property name="serviceId" column="service_id"/>
+        </composite-id>
+        <property name="secret"/>
+        <property name="value"/>
+    </class>
+
+</hibernate-mapping>

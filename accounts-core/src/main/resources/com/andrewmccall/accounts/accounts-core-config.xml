@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010. Andrew McCall [andrew@andrewmccall.com] - All Rights Reserved.
+  ~
+  ~ Unless explicitly stated otherwise, all rights are owned by or controlled by Andrew McCall.
+  ~
+  ~ Except as otherwise expressly permitted under copyright law the content not be copied, reproduced,
+  ~ republished, downloaded, posted, broadcast or transmitted in any way without first obtaining Andrew
+  ~ McCall's written permission or that of the copyright owner.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.0.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+
+    <context:component-scan base-package="com.andrewmccall.accounts.core"/>
+
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>com.andrewmccall.accounts.email</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="oAuthFilter" class="com.andrewmccall.accounts.core.springsecurity.oauth.OAuthAuthenticationProcessingFilter">
+        <property name="authenticationManager" ref="authenticationManager"/>
+        <property name="filterProcessesUrl" value="/signin"/>
+    </bean>
+
+    <bean id="twitterAuthenticationProvider" class="com.andrewmccall.accounts.core.springsecurity.oauth.twitter.TwitterAuthenticationProvider"/>
+
+    <security:authentication-manager alias="authenticationManager">
+        <security:authentication-provider ref="twitterAuthenticationProvider"/>
+    </security:authentication-manager>
+
+</beans>
