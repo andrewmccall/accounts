@@ -105,8 +105,8 @@ public class SpringSecurityService implements SecurityService, UserDetailsServic
         }
 
         if (!(auth instanceof com.andrewmccall.accounts.core.springsecurity.Authentication)) {
-            if (log.isInfoEnabled())
-                log.info("Authentication was not an com.andrewmccall.accounts.core.springsecurity.Authentication. " + auth.toString());
+            if (log.isTraceEnabled())
+                log.trace("Authentication was not an com.andrewmccall.accounts.core.springsecurity.Authentication. " + auth.toString());
             return null;
         }
         return ((com.andrewmccall.accounts.core.springsecurity.Authentication)auth).getUser();
