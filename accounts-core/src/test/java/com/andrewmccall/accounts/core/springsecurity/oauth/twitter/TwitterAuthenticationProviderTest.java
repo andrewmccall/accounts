@@ -14,7 +14,7 @@ import com.andrewmccall.accounts.core.oauth.AccessToken;
 import com.andrewmccall.accounts.core.oauth.AccessTokenStore;
 import com.andrewmccall.accounts.core.springsecurity.oauth.OAuthAuthentication;
 import com.andrewmccall.oauth.OAuthConsumer;
-import com.andrewmccall.oauth.basic.UrlStringRequestAdapter;
+import com.andrewmccall.oauth.UrlStringRequestAdapter;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -122,7 +122,7 @@ public class TwitterAuthenticationProviderTest {
 
         Capture<HttpUriRequest> cap = new Capture<HttpUriRequest>();
 
-        expect(oAuthConsumer.sign(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
+        expect(oAuthConsumer.prepare(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
         expect(accountService.twitterIdExists(user.getTwitterId())).andReturn(false).once();
 
         HttpResponse response = EasyMock.createMock(HttpResponse.class);
@@ -156,7 +156,7 @@ public class TwitterAuthenticationProviderTest {
 
         Capture<HttpUriRequest> cap = new Capture<HttpUriRequest>();
 
-        expect(oAuthConsumer.sign(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
+        expect(oAuthConsumer.prepare(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
         expect(accountService.twitterIdExists(user.getTwitterId())).andReturn(true).once();
 
         HttpResponse response = EasyMock.createMock(HttpResponse.class);
@@ -192,7 +192,7 @@ public class TwitterAuthenticationProviderTest {
 
         Capture<HttpUriRequest> cap = new Capture<HttpUriRequest>();
 
-        expect(oAuthConsumer.sign(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
+        expect(oAuthConsumer.prepare(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
         expect(accountService.twitterIdExists(user.getTwitterId())).andReturn(true).once();
 
         HttpResponse response = EasyMock.createMock(HttpResponse.class);

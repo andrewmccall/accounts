@@ -1,6 +1,6 @@
 package com.andrewmccall.accounts.hibernate.oauth;
 
-import com.andrewmccall.accounts.core.oauth.Service;
+import com.andrewmccall.oauth.Service;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

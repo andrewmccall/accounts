@@ -29,6 +29,8 @@ public class User<T> implements Serializable {
      */
     private T id;
 
+    private Profile profile;
+
     /**
      * The user's username, this is used to login and also in the URL to identify the user.
      */

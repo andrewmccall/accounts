@@ -52,18 +52,16 @@
                          value="com.andrewmccall.oauth.OAuthConsumer"/>        
     </bean>
 
-    <bean id="service" class="com.andrewmccall.accounts.core.oauth.Service">
+    <bean id="service" class="com.andrewmccall.oauth.oauth_1_0.Service">
         <property name="id" value="test-service"/>
         <property name="consumerKey" value="CONSUMER_KEY"/>
         <property name="sharedSecret" value="SHARED_SECRET"/>
         <property name="accessTokenUrl" value="http://example.com/access_token"/>
         <property name="requestTokenUrl" value="http://example.com/request_token"/>
         <property name="userAuthorizationUrl" value="http://example.com/authorization"/>
-        <property name="messageSigner">
-            <bean class="com.andrewmccall.oauth.signature.HmacSha1MessageSigner"/>
-        </property>
+        <property name="signatureMethod" value="HMAC_SHA1"/>
         <property name="signingStrategy">
-            <bean class="com.andrewmccall.oauth.signature.AuthorizationHeaderSigningStrategy"/>
+            <bean class="com.andrewmccall.oauth.oauth_1_0.AuthorizationHeaderSigningStrategy"/>
         </property>
     </bean>
 

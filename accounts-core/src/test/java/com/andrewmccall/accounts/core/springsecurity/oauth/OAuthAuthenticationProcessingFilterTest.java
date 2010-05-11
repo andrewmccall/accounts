@@ -17,8 +17,6 @@ import com.andrewmccall.oauth.OAuth;
 import com.andrewmccall.oauth.OAuthConsumer;
 import com.andrewmccall.oauth.RequestToken;
 import com.andrewmccall.oauth.Service;
-import com.andrewmccall.oauth.signature.AuthorizationHeaderSigningStrategy;
-import com.andrewmccall.oauth.signature.HmacSha1MessageSigner;
 import org.easymock.Capture;
 import org.junit.runner.RunWith;
 import org.junit.Test;

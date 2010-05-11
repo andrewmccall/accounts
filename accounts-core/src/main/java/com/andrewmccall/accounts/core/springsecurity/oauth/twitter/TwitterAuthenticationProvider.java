@@ -61,7 +61,7 @@ public class TwitterAuthenticationProvider extends OAuthAuthenticationProvider {
 
         HttpGet get = new HttpGet(url);
         try {
-            oAuthConsumer.sign(get, token);
+            oAuthConsumer.prepare(get, token);
         } catch (Exception e) {
             throw new OAuthAuthenticationException("Signing request failed!", e);
         }

@@ -4,6 +4,7 @@
 
 package com.andrewmccall.accounts.core.oauth;
 
+import com.andrewmccall.oauth.Service;
 import com.andrewmccall.accounts.core.AccountsException;
 import com.andrewmccall.accounts.core.User;
 

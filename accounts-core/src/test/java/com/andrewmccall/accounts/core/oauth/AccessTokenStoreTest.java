@@ -17,6 +17,7 @@ import com.andrewmccall.accounts.core.AccountsException;
 
 import javax.annotation.Resource;
 
+import com.andrewmccall.oauth.Service;
 import org.junit.Test;
 
 import static org.hamcrest.core.IsNot.not;
@@ -46,7 +47,7 @@ public abstract class AccessTokenStoreTest {
         RandomTestUtils.generateUser(user);
 
 
-        Service service = new Service ();
+        Service service = new com.andrewmccall.oauth.oauth_1_0.Service();
         service.setId("monkey");
 
         accountService.createUser(user);
@@ -74,7 +75,7 @@ public abstract class AccessTokenStoreTest {
         User user = new User();
         RandomTestUtils.generateUser(user);
 
-        Service service = new Service ();
+        Service service = new com.andrewmccall.oauth.oauth_1_0.Service ();
         service.setId("monkey");
 
         accountService.createUser(user);

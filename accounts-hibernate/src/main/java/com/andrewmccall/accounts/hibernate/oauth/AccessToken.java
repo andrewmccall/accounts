@@ -5,7 +5,7 @@
 package com.andrewmccall.accounts.hibernate.oauth;
 
 import com.andrewmccall.accounts.core.User;
-import com.andrewmccall.accounts.core.oauth.Service;
+import com.andrewmccall.oauth.Service;
 
 /**
  * Intermediate AccessToken object we store in the database. 

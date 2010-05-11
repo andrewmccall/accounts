@@ -12,8 +12,8 @@ package com.andrewmccall.accounts.hbase.oauth;
 
 import com.andrewmccall.accounts.core.User;
 import com.andrewmccall.accounts.core.oauth.AccessToken;
-import com.andrewmccall.accounts.core.oauth.Service;
 import com.andrewmccall.accounts.hbase.TableFactory;
+import com.andrewmccall.oauth.Service;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
@@ -78,12 +78,7 @@ public class AccessTokenStore implements com.andrewmccall.accounts.core.oauth.Ac
 
         Put put = new Put(Bytes.toBytes(token.getUser().getId().toString()));
 
-        Service service;
-        if (!(token.getService() instanceof Service))
-            throw new IllegalArgumentException("Service is not of the correct type! Must be: " + Service.class);
-        service = (Service)token.getService();
-
-        put.add(OAUTH_TOKEN, Bytes.toBytes(service.getId()), Bytes.add(
+        put.add(OAUTH_TOKEN, Bytes.toBytes(token.getService().getId()), Bytes.add(
                 Bytes.toBytes(secret.length),
                 secret,
                 value

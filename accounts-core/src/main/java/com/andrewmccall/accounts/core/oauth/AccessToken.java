@@ -5,6 +5,7 @@
 package com.andrewmccall.accounts.core.oauth;
 
 import com.andrewmccall.accounts.core.User;
+import com.andrewmccall.oauth.Service;
 
 import java.io.Serializable;
 

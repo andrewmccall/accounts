@@ -12,10 +12,10 @@ package com.andrewmccall.accounts.core.springsecurity.oauth;
 
 
 import com.andrewmccall.accounts.core.oauth.AccessToken;
-import com.andrewmccall.accounts.core.oauth.Service;
 import com.andrewmccall.oauth.OAuth;
 import com.andrewmccall.oauth.OAuthConsumer;
 import com.andrewmccall.oauth.RequestToken;
+import com.andrewmccall.oauth.Service;
 import com.andrewmccall.oauth.exception.OAuthException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
