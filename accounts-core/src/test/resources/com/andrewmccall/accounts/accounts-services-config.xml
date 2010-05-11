@@ -60,9 +60,7 @@
         <property name="requestTokenUrl" value="http://example.com/request_token"/>
         <property name="userAuthorizationUrl" value="http://example.com/authorization"/>
         <property name="signatureMethod" value="HMAC_SHA1"/>
-        <property name="signingStrategy">
-            <bean class="com.andrewmccall.oauth.oauth_1_0.AuthorizationHeaderSigningStrategy"/>
-        </property>
+        <property name="parameterLocation" value="HEADER"/>
     </bean>
 
 </beans>
