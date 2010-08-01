@@ -30,7 +30,7 @@
         </property>
     </bean>
 
-    <bean id="oAuthFilter" class="com.andrewmccall.accounts.core.springsecurity.oauth.OAuthAuthenticationProcessingFilter">
+    <bean id="oAuthFilter" class="com.andrewmccall.accounts.core.springsecurity.oauth.OAuth_1_0AuthenticationProcessingFilter">
         <property name="authenticationManager" ref="authenticationManager"/>
         <property name="filterProcessesUrl" value="/signin"/>
     </bean>

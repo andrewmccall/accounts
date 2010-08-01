@@ -14,7 +14,7 @@ import com.andrewmccall.accounts.core.springsecurity.oauth.OAuthAuthentication;
 import com.andrewmccall.accounts.core.springsecurity.oauth.OAuthAuthenticationException;
 import com.andrewmccall.accounts.core.springsecurity.oauth.OAuthAuthenticationProvider;
 import com.andrewmccall.oauth.AccessToken;
-import com.andrewmccall.oauth.OAuthConsumer;
+import com.andrewmccall.oauth.Service;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -22,8 +22,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.json.JSONObject;
 import org.json.JSONException;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import com.andrewmccall.accounts.core.AccountService;
 import com.andrewmccall.accounts.core.User;
 import com.andrewmccall.accounts.core.AccountsException;
@@ -42,7 +40,7 @@ public class TwitterAuthenticationProvider extends OAuthAuthenticationProvider {
     private HttpClient httpClient;
 
     @Resource
-    private OAuthConsumer oAuthConsumer;
+    private Service service;
 
     private String url = "http://twitter.com/account/verify_credentials.json";
 
@@ -61,7 +59,7 @@ public class TwitterAuthenticationProvider extends OAuthAuthenticationProvider {
 
         HttpGet get = new HttpGet(url);
         try {
-            oAuthConsumer.prepare(get, token);
+            service.prepare(get, token);
         } catch (Exception e) {
             throw new OAuthAuthenticationException("Signing request failed!", e);
         }

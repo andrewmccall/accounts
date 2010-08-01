@@ -21,7 +21,7 @@
     </class>
 
     <class name="com.andrewmccall.accounts.core.springsecurity.rememberme.RememberMeToken" table="rememberme">
-        <composite-id >
+        <composite-id>
             <key-many-to-one name="user" column="user_id"/>
             <key-property name="series"/>
         </composite-id>
@@ -29,13 +29,26 @@
         <property name="value"/>
     </class>
 
-    <class name="com.andrewmccall.accounts.hibernate.oauth.AccessToken" table="access_token">
+    <class name="com.andrewmccall.accounts.hibernate.oauth.AccessTokenStore$StoredToken" table="access_token">
         <composite-id>
             <key-many-to-one name="user" column="user_id"/>
             <key-property name="serviceId" column="service_id"/>
         </composite-id>
-        <property name="secret"/>
-        <property name="value"/>
+        <discriminator column="type"/>
+        <subclass discriminator-value="1.0"
+                  name="com.andrewmccall.accounts.hibernate.oauth.AccessTokenStore$StoredToken_1_0">
+            <component name="accessToken" class="com.andrewmccall.oauth.oauth_1_0.AccessToken">
+                <property name="secret"/>
+                <property name="value"/>
+            </component>
+        </subclass>
+        <subclass discriminator-value="2.0"
+                  name="com.andrewmccall.accounts.hibernate.oauth.AccessTokenStore$StoredToken_2_0">
+            <component name="accessToken" class="com.andrewmccall.oauth.oauth_2_0.AccessToken">
+                <property name="secret"/>
+                <property name="value"/>
+            </component>
+        </subclass>
     </class>
 
 </hibernate-mapping>

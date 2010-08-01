@@ -13,8 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 
 /**
- * Account service implemented using Hbase as the backing data store. This class is responsible for updating and
- * maintaining the relationships between objects since that is not provided by Hbase.
+ * Account service implemented using Hibernate as the backing data store. 
  */
 @Repository
 @Transactional(readOnly = true)

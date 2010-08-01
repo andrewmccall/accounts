@@ -4,10 +4,11 @@
 
 package com.andrewmccall.accounts.core.springsecurity.oauth;
 
-import com.andrewmccall.accounts.core.oauth.AccessToken;
 import com.andrewmccall.accounts.core.springsecurity.Authentication;
+import com.andrewmccall.oauth.AccessToken;
 
 public class OAuthAuthentication extends Authentication {
+
     AccessToken token;
 
     Object details;

@@ -13,6 +13,7 @@ package com.andrewmccall.accounts.core.springsecurity.rememberme;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
@@ -26,9 +27,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
-import org.easymock.EasyMock;
-import org.easymock.Capture;
-import static org.easymock.EasyMock.*;
 
 import javax.annotation.Resource;
 import java.util.Random;
@@ -38,7 +36,9 @@ import com.andrewmccall.accounts.core.User;
 import com.andrewmccall.accounts.core.RandomTestUtils;
 import com.andrewmccall.accounts.core.AccountService;
 import com.andrewmccall.accounts.core.AccountsException;
-import static junit.framework.Assert.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*; 
 
 /**
  * Tests our RememberMeService implementation
@@ -62,8 +62,8 @@ public class RememberMeServiceTest {
 
 
     private User user;
-    Capture<RememberMeToken> capturedToken = new Capture<RememberMeToken>();
-    Capture<String> capturedSeries = new Capture<String>();
+    ArgumentCaptor<RememberMeToken> capturedToken = ArgumentCaptor.forClass(RememberMeToken.class);
+    ArgumentCaptor<String> capturedSeries = ArgumentCaptor.forClass(String.class);
 
 
     @Before
@@ -71,9 +71,8 @@ public class RememberMeServiceTest {
         user = new User();
         RandomTestUtils.generateUser(user);
         user = RandomTestUtils.setId(user);
-        EasyMock.reset(tokenRepository, accountService);
-        expect(accountService.getUser(user.getId().toString())).andReturn(user).anyTimes();
-        EasyMock.replay(accountService);
+        reset(tokenRepository, accountService);
+        when(accountService.getUser(user.getId().toString())).thenReturn(user);
     }
 
     @Test
@@ -82,11 +81,9 @@ public class RememberMeServiceTest {
         rememberMeService.setSeriesLength(random.nextInt(100));
         rememberMeService.setTokenLength(random.nextInt(100));
 
-        expect(tokenRepository.exists(capture(capturedSeries), isA(User.class))).andReturn(true).andReturn(false);
-        tokenRepository.create(capture(capturedToken));
+        when(tokenRepository.exists(capturedSeries.capture(), isA(User.class))).thenReturn(true).thenReturn(false);
+        doNothing().when(tokenRepository).create(capturedToken.capture());
 
-
-        EasyMock.replay(tokenRepository);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -99,13 +96,11 @@ public class RememberMeServiceTest {
         RememberMeToken token = capturedToken.getValue();
         String series = capturedSeries.getValue();
 
-        EasyMock.verify(tokenRepository);
-        EasyMock.reset(tokenRepository);
 
-        expect(tokenRepository.getToken(series, user)).andReturn(token).anyTimes();
-        tokenRepository.update(capture(capturedToken));
+        reset(tokenRepository);
 
-        EasyMock.replay(tokenRepository);
+        when(tokenRepository.getToken(series, user)).thenReturn(token);
+        doNothing().when(tokenRepository).update(capturedToken.capture());
 
 
         assertNotNull("The cookieToken should ahve been set!", token);
@@ -130,9 +125,9 @@ public class RememberMeServiceTest {
         // now we should be able to use the token to getUserForLogin.
         rememberMeService.processAutoLoginCookie(cookieData, request, response);
 
-        EasyMock.reset(tokenRepository);
-        expect(tokenRepository.getToken(series, user)).andReturn(token).anyTimes();
-        EasyMock.replay(tokenRepository);
+        reset(tokenRepository);
+        when(tokenRepository.getToken(series, user)).thenReturn(token);
+
 
         token = capturedToken.getValue();
 
@@ -146,7 +141,7 @@ public class RememberMeServiceTest {
         assertEquals("The series lenght is not right!", rememberMeService.getSeriesLength(), Base64.decodeBase64(rt.getSeries().getBytes()).length);
         assertEquals("The token lenght is not right!", rememberMeService.getTokenLength(), Base64.decodeBase64(rt.getValue().getBytes()).length);
 
-        EasyMock.verify(tokenRepository);
+
     }
 
     @Test(expected = InvalidCookieException.class)
@@ -195,8 +190,8 @@ public class RememberMeServiceTest {
 
 
         String id = "test";
-        EasyMock.reset(accountService);
-        expect(accountService.getUser(id)).andReturn(null);
+
+        when(accountService.getUser(id)).thenReturn(null);
 
         rememberMeService.processAutoLoginCookie(new String[]{id, "", ""}, request, response);
     }
@@ -208,9 +203,9 @@ public class RememberMeServiceTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         String series = RandomStringUtils.randomAlphabetic(20);
-        EasyMock.reset(tokenRepository);
-        expect(tokenRepository.getToken(series, user)).andReturn(null);
-        EasyMock.replay(tokenRepository);
+        reset(tokenRepository);
+        when(tokenRepository.getToken(series, user)).thenReturn(null);
+
 
         rememberMeService.processAutoLoginCookie(
                 new String[]{
@@ -220,7 +215,6 @@ public class RememberMeServiceTest {
                 }, request, response
         );
 
-        EasyMock.verify(tokenRepository);
     }
 
     @Test(expected = CookieTheftException.class)
@@ -232,10 +226,10 @@ public class RememberMeServiceTest {
         RememberMeToken token = capturedToken.getValue();
         String series = capturedSeries.getValue();
 
-        EasyMock.reset(tokenRepository);
-        expect(tokenRepository.getToken(series, user)).andReturn(token);
+        reset(tokenRepository);
+        when(tokenRepository.getToken(series, user)).thenReturn(token);
         tokenRepository.removeUserTokens(user);
-        EasyMock.replay(tokenRepository);
+
 
         rememberMeService.processAutoLoginCookie(
                 new String[]{
@@ -258,10 +252,10 @@ public class RememberMeServiceTest {
 
         token.setDate(date);
 
-        EasyMock.reset(tokenRepository);
+        reset(tokenRepository);
         tokenRepository.update(token);
-        expect(tokenRepository.getToken(token.getSeries(), user)).andReturn(token);
-        EasyMock.replay(tokenRepository);
+        when(tokenRepository.getToken(token.getSeries(), user)).thenReturn(token);
+
 
         tokenRepository.update(token);
 

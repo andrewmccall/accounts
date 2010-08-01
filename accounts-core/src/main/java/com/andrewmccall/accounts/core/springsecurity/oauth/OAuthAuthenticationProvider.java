@@ -10,7 +10,7 @@
 
 package com.andrewmccall.accounts.core.springsecurity.oauth;
 
-import com.andrewmccall.accounts.core.oauth.AccessToken;
+import com.andrewmccall.oauth.AccessToken;
 import com.andrewmccall.accounts.core.oauth.AccessTokenStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,13 @@ public abstract class OAuthAuthenticationProvider implements AuthenticationProvi
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
+        if (log.isTraceEnabled())
+            log.trace("Attempting to authenticate: " + authentication);
+
         if (!supports(authentication.getClass())) {
+            if (log.isDebugEnabled())
+                log.debug("No support for: " + authentication.getClass());
             return null;
         }
 
@@ -44,10 +50,9 @@ public abstract class OAuthAuthenticationProvider implements AuthenticationProvi
 
         if (oAuthAuthentication.isAuthenticated()) {
             AccessToken token = oAuthAuthentication.getToken();
-            token.setUser(oAuthAuthentication.getUser());
             if (log.isDebugEnabled())
                 log.debug("Storing token: " + token);
-            accessTokenStore.storeToken(token);
+            accessTokenStore.storeToken(token, oAuthAuthentication.getUser());
         }
 
         return authentication;

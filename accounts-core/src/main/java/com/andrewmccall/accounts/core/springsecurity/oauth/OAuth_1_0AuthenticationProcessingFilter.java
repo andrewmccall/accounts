@@ -11,12 +11,12 @@
 package com.andrewmccall.accounts.core.springsecurity.oauth;
 
 
-import com.andrewmccall.accounts.core.oauth.AccessToken;
-import com.andrewmccall.oauth.OAuth;
-import com.andrewmccall.oauth.OAuthConsumer;
-import com.andrewmccall.oauth.RequestToken;
-import com.andrewmccall.oauth.Service;
-import com.andrewmccall.oauth.exception.OAuthException;
+import com.andrewmccall.oauth.AccessToken;
+import com.andrewmccall.oauth.OAuthException;
+import com.andrewmccall.oauth.OAuthNotAuthorizedException;
+import com.andrewmccall.oauth.oauth_1_0.OAuth;
+import com.andrewmccall.oauth.oauth_1_0.RequestToken;
+import com.andrewmccall.oauth.oauth_1_0.Service;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.PortResolver;
@@ -38,12 +38,9 @@ import java.net.URLEncoder;
 /**
  * Authenticates a user via oauth.
  */
-public class OAuthAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
+public class OAuth_1_0AuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String OAUTH_REQUEST_TOKEN = "OAUTH_REQUEST_TOKEN";
-
-    @Resource
-    private OAuthConsumer oAuthConsumer;
 
     @Resource
     private Service service;
@@ -52,11 +49,11 @@ public class OAuthAuthenticationProcessingFilter extends AbstractAuthenticationP
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public OAuthAuthenticationProcessingFilter() {
+    public OAuth_1_0AuthenticationProcessingFilter() {
         this("/");
     }
 
-    protected OAuthAuthenticationProcessingFilter(String defaultFilterProcessesUrl) {
+    protected OAuth_1_0AuthenticationProcessingFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
     }
 
@@ -73,6 +70,10 @@ public class OAuthAuthenticationProcessingFilter extends AbstractAuthenticationP
             // If the token is null, then we need to start the Authorization process.
             try {
                 requestToken = getRequestToken(httpServletRequest, httpServletResponse);
+            } catch (OAuthNotAuthorizedException e) {
+                if (log.isWarnEnabled())
+                    log.warn(new StringBuffer("Problem getting request token: ").append(e.getMessage()).append("\nResponseBody:\n").append(e.getResponseBody()).toString(), e);
+                throw new OAuthAuthenticationException("Failed to get a new RequestToken!", e);
             } catch (OAuthException e) {
                 if (log.isInfoEnabled())
                     log.info("Failed to get a RequestToken", e);
@@ -108,7 +109,7 @@ public class OAuthAuthenticationProcessingFilter extends AbstractAuthenticationP
         token.setVerifier(httpServletRequest.getParameter(OAuth.OAUTH_VERIFIER));
 
         //authorize the request token and store it.
-        AccessToken accessToken = new AccessToken(oAuthConsumer.getAccessToken(token));
+        AccessToken accessToken = service.getAccessToken(token);
 
         if (log.isDebugEnabled()) {
             log.debug("Access token " + token + " obtained");
@@ -124,7 +125,7 @@ public class OAuthAuthenticationProcessingFilter extends AbstractAuthenticationP
 
         //obtain authorization.
         String callbackURL = getCallbackURL(httpServletRequest);
-        RequestToken token = oAuthConsumer.getRequestToken(service, callbackURL);
+        RequestToken token = service.getRequestToken(service, callbackURL);
 
         if (log.isDebugEnabled()) {
             log.debug("Request token obtained, callbackURL " + callbackURL + ": " + token);

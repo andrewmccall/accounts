@@ -24,7 +24,7 @@ public class User<T> implements Serializable {
     private static final Log log = LogFactory.getLog(User.class);
 
     /**
-     * The user ID for this user, the id is a number used to itdentify the user and it's realtionship database,
+     * The user ID for this user, used to identify the user and it's realtionship database,
      * filesystem and other forms of storage.
      */
     private T id;

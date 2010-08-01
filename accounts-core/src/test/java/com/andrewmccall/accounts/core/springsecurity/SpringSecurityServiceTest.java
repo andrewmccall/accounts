@@ -10,6 +10,7 @@
 
 package com.andrewmccall.accounts.core.springsecurity;
 
+import org.mockito.Mockito;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,8 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertEquals;
-import org.easymock.EasyMock;
-import static org.easymock.EasyMock.expect;
+import static org.mockito.Mockito.*;
 
 import javax.annotation.Resource;
 
@@ -50,12 +50,12 @@ public class SpringSecurityServiceTest {
         SecurityContextHolder.clearContext();
         SecurityContextHolder.setContext(new SecurityContextImpl());
 
-        EasyMock.reset(accountService);
+
+        reset(accountService);
         user = new User<UUID>();
         RandomTestUtils.generateUser(user);
         user.setId(UUID.randomUUID());
-        expect(accountService.getUser(user.getId().toString())).andReturn(user).anyTimes();
-        EasyMock.replay(accountService);
+        when(accountService.getUser(user.getId().toString())).thenReturn(user);
 
     }
 
@@ -70,16 +70,12 @@ public class SpringSecurityServiceTest {
         String login = user.getId().toString();
         UserDetails ret = securityService.loadUserByUsername(login);
         assertEquals("The User we got, should be equal to the one we put", new UserDetailsImpl(user, SpringSecurityService.AUTHORITIES), ret);
-        EasyMock.verify(accountService);
-        EasyMock.reset(accountService);
     }
 
     @Test
     public void testGetUser() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(new TestAuthentication(user));
         assertEquals("The user on the context should be ours", user, securityService.getUser());
-        EasyMock.verify(accountService);
-        EasyMock.reset(accountService);
     }
 
     private class TestAuthentication extends Authentication {

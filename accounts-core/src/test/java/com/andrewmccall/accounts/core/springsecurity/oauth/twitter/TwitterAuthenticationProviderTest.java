@@ -10,28 +10,28 @@
 
 package com.andrewmccall.accounts.core.springsecurity.oauth.twitter;
 
-import com.andrewmccall.accounts.core.oauth.AccessToken;
 import com.andrewmccall.accounts.core.oauth.AccessTokenStore;
 import com.andrewmccall.accounts.core.springsecurity.oauth.OAuthAuthentication;
-import com.andrewmccall.oauth.OAuthConsumer;
-import com.andrewmccall.oauth.UrlStringRequestAdapter;
+import com.andrewmccall.oauth.AccessToken;
+import com.andrewmccall.oauth.Service;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.easymock.Capture;
+import org.apache.http.client.methods.HttpGet;
 import org.junit.runner.RunWith;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.security.core.Authentication;
-import org.easymock.EasyMock;
 
-import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -48,7 +48,6 @@ import com.andrewmccall.accounts.core.RandomTestUtils;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.MalformedURLException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -59,7 +58,7 @@ public class TwitterAuthenticationProviderTest {
     private TwitterAuthenticationProvider authenticationProvider;
 
     @Resource
-    private OAuthConsumer oAuthConsumer;
+    private Service service;
 
     @Resource
     private AccountService accountService;
@@ -71,6 +70,16 @@ public class TwitterAuthenticationProviderTest {
     private AccessTokenStore accessTokenStore;
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
+
+    @Mock
+    HttpResponse response;
+    @Mock
+    StatusLine statusLine;
+    @Mock
+    HttpEntity entity;
+
+    private ArgumentCaptor<HttpGet> cap; 
+
 
     private User user;
     private AccessToken token;
@@ -84,15 +93,110 @@ public class TwitterAuthenticationProviderTest {
 
     @Before
     public void resetObjects() throws AccountsException {
-
+        MockitoAnnotations.initMocks(this);
         user = new User();
         RandomTestUtils.generateUser(user);
-        token = new AccessToken();
+        token = new AccessToken(){};
+        token.setService(service);
         auth = new OAuthAuthentication(token, null);
+        reset(service, accountService, accessTokenStore, httpClient, response, statusLine, entity);
+        when(response.getEntity()).thenReturn(entity);
+
+        cap = ArgumentCaptor.forClass(HttpGet.class);
+    }
+
+    @Test
+    public void testAuthenticateNewUser() throws Exception {
+
+        reset(service, accountService, httpClient, accessTokenStore);
+
+
+        HttpGet request = new HttpGet(url);
+        service.prepare(cap.capture(), eq(token));
+
+        when(accountService.twitterIdExists(user.getTwitterId())).thenReturn(false);
+
+        when(httpClient.execute(cap.capture())).thenReturn(response);
+        when(response.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(statusLine.getReasonPhrase()).thenReturn("OK");
+
+        when(response.getEntity()).thenReturn(entity);
+        when(entity.getContent()).thenReturn(userAsStream(user));
+        entity.consumeContent();
+
+        doNothing().when(accountService).createUser(eq(user));
+
+
+        authenticationProvider.authenticate(auth);
+
+        assertEquals(request.getURI(), cap.getValue().getURI());
 
     }
 
-    private InputStream userAsStream (final User user) throws JSONException, UnsupportedEncodingException {
+    @Test
+    public void testAuthenticatedExistingUser() throws Exception {
+
+        RandomTestUtils.setId(user);
+
+        HttpGet request = new HttpGet(url);
+        when(accountService.twitterIdExists(user.getTwitterId())).thenReturn(true);
+
+        when(httpClient.execute(cap.capture())).thenReturn(response);
+        when(response.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(statusLine.getReasonPhrase()).thenReturn("OK");
+
+        when(entity.getContent()).thenReturn(userAsStream(user));
+        entity.consumeContent();
+
+        when(accountService.getUserForTwitterId(user.getTwitterId())).thenReturn(user);
+        ArgumentCaptor<AccessToken> tc = ArgumentCaptor.forClass(AccessToken.class);
+
+        authenticationProvider.authenticate((Authentication) auth);
+        
+        verify(service).prepare(cap.capture(), eq(token));
+        verify(accessTokenStore).storeToken(tc.capture(), eq(user));
+
+        assertTrue(tc.getValue() != null);
+
+    }
+
+    @Test
+    public void testAuthenticatedExistingUserAndUpdate() throws Exception {
+
+        RandomTestUtils.setId(user);
+        reset(service, accountService, accessTokenStore, httpClient);
+
+
+        HttpGet request = new HttpGet(url);
+        service.prepare(cap.capture(), eq(token));
+
+        when(accountService.twitterIdExists(user.getTwitterId())).thenReturn(true);
+
+        when(httpClient.execute(cap.capture())).thenReturn(response);
+        when(response.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(statusLine.getReasonPhrase()).thenReturn("OK");
+
+        User nuser = new User();
+        RandomTestUtils.generateUser(nuser);
+        nuser.setId(user.getId());
+        nuser.setTwitterId(user.getTwitterId());
+
+        when(entity.getContent()).thenReturn(userAsStream(nuser));
+
+        entity.consumeContent();
+
+        when(accountService.getUserForTwitterId(user.getTwitterId())).thenReturn(user);
+
+        accountService.update(nuser);
+
+        authenticationProvider.authenticate(auth);
+
+    }
+
+    private InputStream userAsStream(final User user) throws JSONException, UnsupportedEncodingException {
 
         if (log.isDebugEnabled())
             log.debug("Creating new inputStream for user:" + user);
@@ -104,7 +208,7 @@ public class TwitterAuthenticationProviderTest {
         obj.put("screen_name", user.getUsername());
         obj.put("description", user.getBio());
         obj.put("url", user.getWebsite());
-        obj.put("time_zone", user.getTimeZone().getID()) ;
+        obj.put("time_zone", user.getTimeZone().getID());
         obj.put("followers_count", user.getFollowers());
         obj.put("friends_count", user.getFriends());
 
@@ -114,115 +218,4 @@ public class TwitterAuthenticationProviderTest {
         return new ByteArrayInputStream(obj.toString().getBytes("UTF-8"));
 
     }
-
-    @Test
-    public void testAuthenticateNewUser () throws Exception {
-
-        EasyMock.reset(oAuthConsumer, accountService, httpClient, accessTokenStore);
-
-        Capture<HttpUriRequest> cap = new Capture<HttpUriRequest>();
-
-        expect(oAuthConsumer.prepare(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
-        expect(accountService.twitterIdExists(user.getTwitterId())).andReturn(false).once();
-
-        HttpResponse response = EasyMock.createMock(HttpResponse.class);
-        StatusLine statusLine = EasyMock.createMock(StatusLine.class);
-        expect(httpClient.execute(EasyMock.capture(cap))).andReturn(response);
-        expect(response.getStatusLine()).andReturn(statusLine).anyTimes();
-        expect(statusLine.getStatusCode()).andReturn(200).anyTimes();
-        expect(statusLine.getReasonPhrase()).andReturn("OK").anyTimes();
-
-        HttpEntity entity = EasyMock.createMock(HttpEntity.class);
-        expect(response.getEntity()).andReturn(entity).times(2);
-        expect(entity.getContent()).andReturn(userAsStream(user));
-        entity.consumeContent();
-
-        accountService.createUser(EasyMock.eq(user));
-
-        EasyMock.replay(accountService, oAuthConsumer, accessTokenStore, httpClient, response, statusLine, entity);
-        authenticationProvider.authenticate(auth);
-
-        assertEquals("The url should be the one we capture!", url, cap.getValue().getURI().toString());
-
-        EasyMock.verify(oAuthConsumer, accountService, accessTokenStore, httpClient, response, statusLine, entity);
-        EasyMock.reset(oAuthConsumer, accountService, accessTokenStore, httpClient, response, statusLine, entity);
-    }
-
-    @Test
-    public void testAuthenticatedExistingUser() throws Exception {
-
-        RandomTestUtils.setId(user);
-        EasyMock.reset(oAuthConsumer, accountService, httpClient, accessTokenStore);
-
-        Capture<HttpUriRequest> cap = new Capture<HttpUriRequest>();
-
-        expect(oAuthConsumer.prepare(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
-        expect(accountService.twitterIdExists(user.getTwitterId())).andReturn(true).once();
-
-        HttpResponse response = EasyMock.createMock(HttpResponse.class);
-        StatusLine statusLine = EasyMock.createMock(StatusLine.class);
-        expect(httpClient.execute(EasyMock.capture(cap))).andReturn(response);
-        expect(response.getStatusLine()).andReturn(statusLine).anyTimes();
-        expect(statusLine.getStatusCode()).andReturn(200).anyTimes();
-        expect(statusLine.getReasonPhrase()).andReturn("OK").anyTimes();
-
-        HttpEntity entity = EasyMock.createMock(HttpEntity.class);
-        expect(response.getEntity()).andReturn(entity).times(2);
-        expect(entity.getContent()).andReturn(userAsStream(user));
-        entity.consumeContent();
-
-        expect(accountService.getUserForTwitterId(user.getTwitterId())).andReturn(user);
-        Capture<AccessToken> tc = new Capture<AccessToken>();
-        accessTokenStore.storeToken(EasyMock.capture(tc));
-
-        EasyMock.replay(accountService, oAuthConsumer, accessTokenStore, httpClient, response, statusLine, entity);
-
-        authenticationProvider.authenticate((Authentication)auth);
-        assertTrue(tc.hasCaptured());
-
-        EasyMock.verify(oAuthConsumer, accountService, accessTokenStore, httpClient, response, statusLine, entity);
-        EasyMock.reset(oAuthConsumer, accountService, accessTokenStore, httpClient, response, statusLine, entity);
-    }
-
-    @Test
-    public void testAuthenticatedExistingUserAndUpdate() throws Exception {
-
-        RandomTestUtils.setId(user);
-        EasyMock.reset(oAuthConsumer, accountService, accessTokenStore, httpClient);
-
-        Capture<HttpUriRequest> cap = new Capture<HttpUriRequest>();
-
-        expect(oAuthConsumer.prepare(EasyMock.capture(cap), EasyMock.eq(token))).andReturn(new UrlStringRequestAdapter(url));
-        expect(accountService.twitterIdExists(user.getTwitterId())).andReturn(true).once();
-
-        HttpResponse response = EasyMock.createMock(HttpResponse.class);
-        StatusLine statusLine = EasyMock.createMock(StatusLine.class);
-        expect(httpClient.execute(EasyMock.capture(cap))).andReturn(response);
-        expect(response.getStatusLine()).andReturn(statusLine).anyTimes();
-        expect(statusLine.getStatusCode()).andReturn(200).anyTimes();
-        expect(statusLine.getReasonPhrase()).andReturn("OK").anyTimes();
-
-        HttpEntity entity = EasyMock.createMock(HttpEntity.class);
-        expect(response.getEntity()).andReturn(entity).times(2);
-
-        User nuser = new User();
-        RandomTestUtils.generateUser(nuser);
-        nuser.setId(user.getId());
-        nuser.setTwitterId(user.getTwitterId());
-        
-        expect(entity.getContent()).andReturn(userAsStream(nuser));
-
-        entity.consumeContent();
-
-        expect(accountService.getUserForTwitterId(user.getTwitterId())).andReturn(user);
-        
-        accountService.update(nuser);
-
-        EasyMock.replay(accountService, oAuthConsumer, accessTokenStore, httpClient, response, statusLine, entity);
-        authenticationProvider.authenticate(auth);
-
-        EasyMock.verify(oAuthConsumer, accountService, accessTokenStore, httpClient, response, statusLine, entity);
-        EasyMock.reset(oAuthConsumer, accountService, accessTokenStore, httpClient, response, statusLine, entity);
-    }
-
 }

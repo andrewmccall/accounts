@@ -11,8 +11,8 @@
 package com.andrewmccall.accounts.hbase.oauth;
 
 import com.andrewmccall.accounts.core.User;
-import com.andrewmccall.accounts.core.oauth.AccessToken;
 import com.andrewmccall.accounts.hbase.TableFactory;
+import com.andrewmccall.oauth.AccessToken;
 import com.andrewmccall.oauth.Service;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
@@ -49,16 +49,18 @@ public class AccessTokenStore implements com.andrewmccall.accounts.core.oauth.Ac
                 byte[] tokenB = result.getValue(OAUTH_TOKEN, Bytes.toBytes(service.getId()));
                 if (tokenB != null) {
 
-                    // The first byte is the boolean, the next two indicate the break point between the secret and value.
+                    AccessToken token;
+                    if (service instanceof com.andrewmccall.oauth.oauth_1_0.Service) {
+                        token = new com.andrewmccall.oauth.oauth_1_0.AccessToken();
+                        int bp = Bytes.toInt(tokenB, 0, Bytes.SIZEOF_INT);
+                        token.setSecret(Bytes.toString(tokenB, Bytes.SIZEOF_INT, bp));
+                        bp = Bytes.SIZEOF_INT + bp;
+                        token.setValue((Bytes.toString(tokenB, bp, tokenB.length - bp)));
+                    } else {
+                        token = new com.andrewmccall.oauth.oauth_2_0.AccessToken();
+                    }
 
-                    AccessToken token = new AccessToken();
                     token.setService(service);
-                    token.setUser(user);
-
-                    int bp = Bytes.toInt(tokenB, 0, Bytes.SIZEOF_INT);
-                    token.setSecret(Bytes.toString(tokenB, Bytes.SIZEOF_INT, bp));
-                    bp = Bytes.SIZEOF_INT + bp;
-                    token.setValue((Bytes.toString(tokenB, bp, tokenB.length - bp)));
                     return token;
                 }
             }
@@ -70,13 +72,42 @@ public class AccessTokenStore implements com.andrewmccall.accounts.core.oauth.Ac
         return null;
     }
 
+    /**
+     * This method will throw an IllegalArgumentException if called. Implementations MUST use one of 
+     * @param token
+     * @param user
+     */
     @Override
-    public void storeToken(AccessToken token) {
+    public void storeToken(AccessToken token, User user) {
+        throw new IllegalArgumentException("Can't deal with this token type!");
+    }
+
+    public void storeToken(com.andrewmccall.oauth.oauth_1_0.AccessToken token , User user) {
 
         byte[] secret = Bytes.toBytes(token.getSecret());
         byte[] value = Bytes.toBytes(token.getValue());
 
-        Put put = new Put(Bytes.toBytes(token.getUser().getId().toString()));
+        Put put = new Put(Bytes.toBytes(user.getId().toString()));
+
+        put.add(OAUTH_TOKEN, Bytes.toBytes(token.getService().getId()), Bytes.add(
+                Bytes.toBytes(secret.length),
+                secret,
+                value
+        ));
+        try {
+            tableFactory.getTable().put(put);
+        } catch (IOException e) {
+            if (log.isWarnEnabled())
+                log.warn("Failed to store OAuthTokenUtil " + token, e);
+        }
+    }
+
+    public void storeToken(com.andrewmccall.oauth.oauth_2_0.AccessToken token , User user) {
+
+        byte[] secret = Bytes.toBytes(token.getSecret());
+        byte[] value = Bytes.toBytes(token.getValue());
+
+        Put put = new Put(Bytes.toBytes(user.getId().toString()));
 
         put.add(OAUTH_TOKEN, Bytes.toBytes(token.getService().getId()), Bytes.add(
                 Bytes.toBytes(secret.length),

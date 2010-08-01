@@ -12,6 +12,7 @@ package com.andrewmccall.accounts.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.annotation.Resource;
@@ -33,12 +34,16 @@ public abstract class AccountServiceTest<T> {
     @Resource
     protected AccountService<T> accountService;
 
+    @Before
+    public void prepareUser() {
+        user = new User();
+        RandomTestUtils.generateUser(user);
+    }
+
     @Test
     @Transactional(readOnly=false)
     public void testCreateUser() throws Exception {
 
-        user = new User();
-        RandomTestUtils.generateUser(user);
         accountService.createUser(user);
 
         if (log.isInfoEnabled())
@@ -63,8 +68,6 @@ public abstract class AccountServiceTest<T> {
     @Test
     @Transactional
     public void testUpdateUser() throws AccountsException {
-        user = new User();
-        RandomTestUtils.generateUser(user);
         accountService.createUser(user);
 
         assertNotNull("The user should have an ID! ", user.getId());
@@ -82,8 +85,6 @@ public abstract class AccountServiceTest<T> {
     @Test(expected = AccountsException.class)
     @Transactional
     public void testNoUserReturnsNull() throws AccountsException {
-        user = new User();
-        RandomTestUtils.generateUser(user);
         accountService.createUser(user);
 
         assertNotNull("The user should have an ID! ", user.getId());

@@ -3,3 +3,6 @@ target
 *.ipr
 *.iml
 overlays
+.settings
+.classpath
+.project
